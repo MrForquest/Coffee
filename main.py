@@ -1,20 +1,23 @@
 import sqlite3
 import sys
 
-from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
+from main_design import Ui_MainWindow
+from addEditCoffeeForm import Ui_Form
+
+data = r'..\data\coffee.sqlite'
 
 
-class MyWidget(QMainWindow):
+class MyWidget(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('main.ui', self)
+        self.setupUi(self)
         self.loadTable()
         self.btnAddEdit.clicked.connect(self.open_add_edit)
 
     def loadTable(self):
-        con = sqlite3.connect("coffee.sqlite")
+        con = sqlite3.connect(data)
         cur = con.cursor()
         result = cur.execute("""SELECT * FROM Coffee""").fetchall()
         con.close()
@@ -38,17 +41,17 @@ class MyWidget(QMainWindow):
         self.form.show()
 
 
-class AddEditWidget(QWidget):
+class AddEditWidget(QWidget, Ui_Form):
     def __init__(self):
         super().__init__()
-        uic.loadUi('addEditCoffeeForm.ui', self)
+        self.setupUi(self)
         self.btn_add.clicked.connect(self.insert_coffee)
         self.comboBox.currentIndexChanged.connect(self.update_edit_table)
         self.pushButton_2.clicked.connect(self.save_changes)
         self.title = "название сорта, степень обжарки, молотый/в зернах, описание вкуса, цена, объем упаковки".split(
             ", ")
         self.init_add_table()
-        con = sqlite3.connect("coffee.sqlite")
+        con = sqlite3.connect(data)
         cur = con.cursor()
         result = cur.execute("""SELECT id FROM Coffee""").fetchall()
         con.close()
@@ -74,7 +77,7 @@ class AddEditWidget(QWidget):
             return
         info[5] = int(info[5])
         info[4] = int(info[4])
-        con = sqlite3.connect("coffee.sqlite")
+        con = sqlite3.connect(data)
         cur = con.cursor()
         cur.execute("""INSERT INTO Coffee (name, roastDegree, gOrB, descFlavor, price, volume)
                         VALUES (?, ?, ?, ?, ?, ?)""", info)
@@ -87,7 +90,7 @@ class AddEditWidget(QWidget):
         self.form.show()
 
     def update_edit_table(self):
-        con = sqlite3.connect("coffee.sqlite")
+        con = sqlite3.connect(data)
         cur = con.cursor()
         id_item = self.comboBox.currentText()
         self.selected_item = cur.execute(f"SELECT * FROM Coffee WHERE id={id_item}").fetchone()
@@ -100,7 +103,7 @@ class AddEditWidget(QWidget):
         self.tableWidgetEdit.resizeColumnsToContents()
 
     def save_changes(self):
-        con = sqlite3.connect("coffee.sqlite")
+        con = sqlite3.connect(data)
         cur = con.cursor()
         id_item = int(self.selected_item[0])
         info = list()
